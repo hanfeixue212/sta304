@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.75.1" />
+
+
+<title>Survey data CES - Sta 304 A1</title>
+<meta property="og:title" content="Survey data CES - Sta 304 A1">
+
+
+  <link href='../../../../favicon.ico' rel='icon' type='image/x-icon'/>
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="../../../../css/fonts.css" media="all">
+<link rel="stylesheet" href="../../../../css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  <a href="../../../../" class="nav-logo">
+    <img src="../../../../images/logo.png"
+         width="50"
+         height="50"
+         alt="Logo">
+  </a>
+
+  <ul class="nav-links">
+    
+    <li><a href="../../../../about/">About</a></li>
+    
+    <li><a href="https://github.com/rstudio/blogdown">GitHub</a></li>
+    
+    <li><a href="https://twitter.com/rstudio">Twitter</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">11 min read</span>
+    
+
+    <h1 class="article-title">Survey data CES</h1>
+
+    
+    <span class="article-date">2015-07-23</span>
+    
+
+    <div class="article-content">
+      
+
+
+<p>We use <span class="citation">R Core Team (2020)</span> and ‘R’ package <span class="citation">Wickham et al. (2019)</span> to do the analysis</p>
+<p><a href="https://github.com/hanfeixue212/sta304.git" class="uri">https://github.com/hanfeixue212/sta304.git</a></p>
+<p>#abstract
+Canada 2020 population is estimated at 37,742,154 people at mid year according to UN data. Canada population is equivalent to 0.48% of the total world population. Canada ranks number 39 in the list of countries (and dependencies) by population.
+In 2019, there were about 5.16 million males and 5.07 million females between the ages of 25 and 44 living in Canada, which was the most out of any age group. The next largest age group was between the ages of 45 and 64, with 5.04 million males and 5.12 million females</p>
+<p>Base on that, the relationship of weight of the population in each province and gender can be found through the study.
+In the study, the subset of the 2019 CES dataset which is part of 2019 Canadian Elections Survey was selected while analyzing data. According to the weight and gender (male, female and other), we can know that gender and weight are not associated in Canada.</p>
+<p>The weight and gender were selected, and they are not associated. However, other variables may affect weight such as languages, phone type, province and etc. Also, missing information need to be found which could potentially affect the results. In the future, a regression model can be built for better explaining the relationship between the weight and gender.</p>
+<p>introduction
+In the 2019 Canadian Election Study, the population of adult in
+Canada was defined through telephone survey. The sample component
+for the 2019 Canadian Election Study was designed to represent the adult
+population of Canada defined as: Canadian citizens 18 years of age or older
+who reside in one of the ten Canadian provinces (thus excluding the territories). Because the initial survey (the CPS) was conducted by telephone, the small proportion of households in Canada without landline or wireless telephones were excluded from the sample population.
+The ‘ces’ data set is a subset of the 2019 CES phone survey.</p>
+<p>#Variables in the ces2019_phone_subset have been selected below:</p>
+<p>#The ‘ces’ data set is a subset of the 2019 CES phone survey.</p>
+<pre class="r"><code>cesR::get_ces(&quot;ces2019_phone&quot;)</code></pre>
+<pre><code>## TO CITE THIS SURVEY FILE:
+## 
+## - Stephenson, Laura B; Harell, Allison; Rubenson, Daniel; Loewen, Peter John, 2020, &#39;2019 Canadian Election Study - Phone Survey&#39;, https://doi.org/10.7910/DVN/8RHLG1, Harvard Dataverse, V1, UNF:6:eyR28qaoYlHj9qwPWZmmVQ== [fileUNF]
+## 
+## - Stephenson, Laura, Allison Harrel, Daniel Rubenson and Peter Loewen. Forthcoming. &#39;Measuring Preferences and Behaviour in the 2019 Canadian Election Study,&#39; Canadian Journal of Political Science.
+## 
+## LINK: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/8RHLG1</code></pre>
+<pre class="r"><code>ces2019_phone &lt;- to_factor(ces2019_phone)
+head(ces2019_phone)</code></pre>
+<pre><code>## # A tibble: 6 x 278
+##   sample_id survey_end_CES survey_end_mont… survey_end_day_… num_attempts_CES
+##       &lt;dbl&gt; &lt;chr&gt;                     &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1        18 2019-09-23 15…                9               23                5
+## 2        32 2019-09-12 18…                9               12                1
+## 3        39 2019-09-10 18…                9               10                1
+## 4        59 2019-10-10 15…               10               10                6
+## 5        61 2019-09-12 16…                9               12                1
+## 6        69 2019-09-17 17…                9               17                1
+## # … with 273 more variables: interviewer_id_CES &lt;dbl&gt;,
+## #   interviewer_gender_CES &lt;chr&gt;, language_CES &lt;fct&gt;, phonetype_CES &lt;fct&gt;,
+## #   survey_end_PES &lt;chr&gt;, survey_end_month_PES &lt;fct&gt;, survey_end_day_PES &lt;fct&gt;,
+## #   num_attempts_PES &lt;fct&gt;, interviewer_id_PES &lt;fct&gt;,
+## #   interviewer_gender_PES &lt;chr&gt;, language_PES &lt;fct&gt;, phonetype_PES &lt;fct&gt;,
+## #   mode_PES &lt;fct&gt;, phone_type &lt;fct&gt;, weight_CES &lt;dbl&gt;, weight_PES &lt;fct&gt;,
+## #   c1 &lt;fct&gt;, c2a &lt;fct&gt;, c3 &lt;fct&gt;, q1 &lt;fct&gt;, q2 &lt;fct&gt;, q3 &lt;fct&gt;, q4 &lt;fct&gt;,
+## #   q6 &lt;fct&gt;, q7 &lt;chr&gt;, q72 &lt;chr&gt;, q73 &lt;chr&gt;, q74 &lt;chr&gt;, q8 &lt;fct&gt;, q8_70 &lt;chr&gt;,
+## #   q9 &lt;fct&gt;, q10 &lt;fct&gt;, q11 &lt;fct&gt;, q11_70 &lt;chr&gt;, q12 &lt;fct&gt;, q12_70 &lt;chr&gt;,
+## #   q13 &lt;fct&gt;, q14 &lt;fct&gt;, q15 &lt;fct&gt;, q16 &lt;fct&gt;, q17 &lt;fct&gt;, q18 &lt;fct&gt;,
+## #   q19 &lt;fct&gt;, q20 &lt;fct&gt;, q21 &lt;fct&gt;, q22 &lt;fct&gt;, q23 &lt;fct&gt;, q24 &lt;fct&gt;,
+## #   q25 &lt;fct&gt;, q27_a &lt;fct&gt;, q27_b &lt;fct&gt;, q27_c &lt;fct&gt;, q27_d &lt;fct&gt;, q27_e &lt;fct&gt;,
+## #   q31 &lt;fct&gt;, q32 &lt;fct&gt;, q33 &lt;fct&gt;, q33_70 &lt;chr&gt;, q34 &lt;fct&gt;, q34_70 &lt;chr&gt;,
+## #   q35 &lt;fct&gt;, q35_70 &lt;chr&gt;, q36 &lt;fct&gt;, q36_70 &lt;chr&gt;, q37 &lt;fct&gt;, q37_70 &lt;chr&gt;,
+## #   q38 &lt;fct&gt;, q38_70 &lt;chr&gt;, q39 &lt;fct&gt;, q40 &lt;fct&gt;, q75 &lt;fct&gt;, q44 &lt;fct&gt;,
+## #   q76 &lt;fct&gt;, q45 &lt;fct&gt;, q46 &lt;fct&gt;, q47 &lt;fct&gt;, q48 &lt;fct&gt;, q49 &lt;fct&gt;,
+## #   q52 &lt;fct&gt;, q52_70 &lt;chr&gt;, q53 &lt;fct&gt;, q54 &lt;fct&gt;, q59 &lt;fct&gt;, q60 &lt;fct&gt;,
+## #   q60_70 &lt;chr&gt;, q77 &lt;fct&gt;, q43 &lt;fct&gt;, q61 &lt;fct&gt;, q62 &lt;fct&gt;, q62_220 &lt;chr&gt;,
+## #   q63 &lt;fct&gt;, q64 &lt;fct&gt;, q64_130 &lt;chr&gt;, q65 &lt;fct&gt;, q66a_1 &lt;fct&gt;, q66a_2 &lt;fct&gt;,
+## #   q66a_3 &lt;fct&gt;, q66a_4 &lt;fct&gt;, q66a_5 &lt;fct&gt;, q66a_6 &lt;fct&gt;, …</code></pre>
+<p>#The required variables columns in the ces2019_phone_subset have been selected below:</p>
+<pre class="r"><code>ces2019_phone_subset &lt;- ces2019_phone %&gt;%
+  select(7, 8, 9, 20,25:30)
+head(ces2019_phone_subset)</code></pre>
+<pre><code>## # A tibble: 6 x 10
+##   interviewer_gen… language_CES phonetype_CES weight_CES q1    q2    q3    q4   
+##   &lt;chr&gt;            &lt;fct&gt;        &lt;fct&gt;              &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt; &lt;fct&gt; &lt;fct&gt;
+## 1 Female           (2) French   (2) Wireless       0.902 (1) … 1963  (1) … (5) …
+## 2 Male             (1) English  (2) Wireless       0.902 (1) … 1973  (1) … (5) …
+## 3 Female           (2) French   (2) Wireless       0.902 (1) … 1994  (1) … (5) …
+## 4 Female           (2) French   (2) Wireless       1.23  (1) … 2000  (1) … (5) …
+## 5 Male             (2) French   (2) Wireless       0.902 (1) … 1984  (1) … (5) …
+## 6 Female           (2) French   (2) Wireless       0.902 (1) … 1939  (1) … (5) …
+## # … with 2 more variables: q6 &lt;fct&gt;, q7 &lt;chr&gt;</code></pre>
+<p>#The name of the columns have been renamed below:</p>
+<pre class="r"><code>get_question(&quot;ces2019_phone_subset&quot;, &quot;q1&quot;)</code></pre>
+<pre><code>## Are you a Canadian Citizen?</code></pre>
+<pre class="r"><code>get_question(&quot;ces2019_phone_subset&quot;, &quot;q2&quot;)</code></pre>
+<pre><code>## In what year were you born?</code></pre>
+<pre class="r"><code>get_question(&quot;ces2019_phone_subset&quot;, &quot;q3&quot;)</code></pre>
+<pre><code>## Gender</code></pre>
+<pre class="r"><code>get_question(&quot;ces2019_phone_subset&quot;, &quot;q4&quot;)</code></pre>
+<pre><code>## In which province or territory are you currently living?</code></pre>
+<pre class="r"><code>get_question(&quot;ces2019_phone_subset&quot;, &quot;q6&quot;)</code></pre>
+<pre><code>## On the whole, are you very satisfied, fairly satisfied, not very satisfied</code></pre>
+<pre class="r"><code>get_question(&quot;ces2019_phone_subset&quot;, &quot;q7&quot;)</code></pre>
+<pre><code>## Most important issue in this FEDERAL election</code></pre>
+<p>#Here is the gragh to show the miss of data in the selected column.
+#The details of the column and row are displayed below.The max, min, standard deviation and quantile value are also included in the result of skim.</p>
+<pre class="r"><code>vis_dat(ces2019_phone_subset)</code></pre>
+<p><img src="../../../../post/2015-07-23-r-rmarkdown_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>vis_miss(ces2019_phone_subset)</code></pre>
+<p><img src="../../../../post/2015-07-23-r-rmarkdown_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<pre class="r"><code>skimr::skim(ces2019_phone_subset)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-4">Table 1: </span>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">ces2019_phone_subset</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">4021</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">10</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">character</td>
+<td align="left">2</td>
+</tr>
+<tr class="odd">
+<td align="left">factor</td>
+<td align="left">7</td>
+</tr>
+<tr class="even">
+<td align="left">numeric</td>
+<td align="left">1</td>
+</tr>
+<tr class="odd">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">min</th>
+<th align="right">max</th>
+<th align="right">empty</th>
+<th align="right">n_unique</th>
+<th align="right">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">interviewer_gender_CES</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">4</td>
+<td align="right">11</td>
+<td align="right">0</td>
+<td align="right">3</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">q7</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">255</td>
+<td align="right">0</td>
+<td align="right">2174</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">ordered</th>
+<th align="right">n_unique</th>
+<th align="left">top_counts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">language_CES</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">(1): 3281, (2): 740, (3): 0</td>
+</tr>
+<tr class="even">
+<td align="left">phonetype_CES</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">2</td>
+<td align="left">(2): 2673, (1): 1348</td>
+</tr>
+<tr class="odd">
+<td align="left">q1</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">1</td>
+<td align="left">(1): 4021, (-9: 0, (-8: 0, (-7: 0</td>
+</tr>
+<tr class="even">
+<td align="left">q2</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">79</td>
+<td align="left">195: 96, 195: 91, 195: 91, 198: 88</td>
+</tr>
+<tr class="odd">
+<td align="left">q3</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">3</td>
+<td align="left">(1): 2272, (2): 1748, (3): 1, (-9: 0</td>
+</tr>
+<tr class="even">
+<td align="left">q4</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">10</td>
+<td align="left">(6): 807, (10: 804, (5): 802, (9): 282</td>
+</tr>
+<tr class="odd">
+<td align="left">q6</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">6</td>
+<td align="left">(2): 2248, (3): 814, (1): 562, (4): 330</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">weight_CES</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">0.61</td>
+<td align="right">0.07</td>
+<td align="right">0.52</td>
+<td align="right">0.69</td>
+<td align="right">1.64</td>
+<td align="right">2.32</td>
+<td align="left">▆▇▂▃▂</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>summary(ces2019_phone_subset$weight_CES)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## 0.07061 0.51824 0.69446 1.00000 1.63596 2.32041</code></pre>
+<pre class="r"><code>sum_data &lt;- data.frame(Min = 0.0706,
+                       first = 0.518,
+                       median = 0.694)
+colnames(sum_data) &lt;- c(&quot;Minimum&quot;, &quot;1st Quartile&quot;, &quot;Median&quot;)
+kable(sum_data, caption=&quot;summary statistics of weight&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-4">Table 1: </span>summary statistics of weight</caption>
+<thead>
+<tr class="header">
+<th align="right">Minimum</th>
+<th align="right">1st Quartile</th>
+<th align="right">Median</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.0706</td>
+<td align="right">0.518</td>
+<td align="right">0.694</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>max(ces2019_phone_subset$weight_CES,na.rm = T)</code></pre>
+<pre><code>## [1] 2.320407</code></pre>
+<div id="the-maximum-value-of-the-weight-is-2.320407-which-is-over-1.-the-resonable-value-should-be-less-than-1." class="section level1">
+<h1>The maximum value of the weight is 2.320407 which is over 1. The resonable value should be less than 1.</h1>
+</div>
+<div id="the-value-of-weight-which-is-over-1-is-filtered-below." class="section level1">
+<h1>The value of weight which is over 1 is filtered below.</h1>
+<pre class="r"><code>ces2019_phone_subset &lt;- 
+  ces2019_phone_subset %&gt;% 
+  filter( weight_CES&lt; 1)
+
+summary(ces2019_phone_subset$weight_CES)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## 0.07061 0.41752 0.60321 0.56061 0.69446 0.90195</code></pre>
+<p>#histdigram for weight</p>
+<pre class="r"><code>library(png)
+par(pin = c(5,3))
+ces2019_phone_subset %&gt;% 
+  ggplot(aes(x = weight_CES)) +
+  geom_histogram(col=&quot;black&quot;, fill=&quot;grey&quot;, alpha=0.5) + theme_classic() + 
+  labs(title=&quot;Histogram of weight&quot;, 
+       subtitle = &quot;of Canadians in ...&quot;, 
+       caption = &quot;Data source: ces dataset that is part of 2019 CES dataset&quot;)</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="../../../../post/2015-07-23-r-rmarkdown_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>#Normal Q-Q plot of weight</p>
+<pre class="r"><code>qqnorm(ces2019_phone_subset$weight_CES, main=&quot;Normal Q-Q plot of weight&quot;)
+qqline(ces2019_phone_subset$weight_CES)</code></pre>
+<p><img src="../../../../post/2015-07-23-r-rmarkdown_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+#According to the Normal Q-Q plot, it does not follow the normal distribution.</p>
+<pre class="r"><code>ces2019_phone_subset$q3 &lt;- as.character(ces2019_phone_subset$q3)
+ces2019_phone_subset$q3[ces2019_phone_subset$q3 == unique(ces2019_phone_subset$q3)[3]] &lt;- &quot;Other&quot;
+ces2019_phone_subset$q3 &lt;- as.factor(ces2019_phone_subset$q3)
+levels(ces2019_phone_subset$q3)</code></pre>
+<pre><code>## [1] &quot;(1) Male&quot;   &quot;(2) Female&quot; &quot;Other&quot;</code></pre>
+<pre class="r"><code>table(ces2019_phone_subset$q3)</code></pre>
+<pre><code>## 
+##   (1) Male (2) Female      Other 
+##       1424       1032          1</code></pre>
+<pre class="r"><code>round(prop.table(table(ces2019_phone_subset$q3)), 3)</code></pre>
+<pre><code>## 
+##   (1) Male (2) Female      Other 
+##       0.58       0.42       0.00</code></pre>
+</div>
+<div id="of-the-sample-is-male-while-42-is-female.-the-other-is-1." class="section level1">
+<h1>58% of the sample is male while 42% is female. The other is 1.</h1>
+</div>
+<div id="bar-chart-for-gender" class="section level1">
+<h1>Bar chart for gender</h1>
+<pre class="r"><code>ces2019_phone_subset%&gt;% 
+  ggplot(aes(x = q3)) +
+  geom_bar(col=&quot;blue&quot;, fill=&quot;orange&quot;) + theme_bw() + 
+  labs(title=&quot;Bar chart of q3&quot;, 
+       caption = &quot;Data source: ces2019_phone_subset that is part of 2019 CES dataset&quot;)</code></pre>
+<p><img src="../../../../post/2015-07-23-r-rmarkdown_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre class="r"><code>#boxplot of weight and gender
+ggplot(ces2019_phone_subset, aes(x=weight_CES, y=q3)) + 
+  geom_boxplot(outlier.colour=&quot;blue&quot;,
+               outlier.size=1) + theme_bw() + 
+  labs(title=&quot;Box plot of weight by gender&quot;, 
+       caption = &quot;ces2019_phone_subset that is part of 2019 CES dataset&quot;)</code></pre>
+<p><img src="../../../../post/2015-07-23-r-rmarkdown_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code>kruskal.test(ces2019_phone_subset$weight_CES ~ q3, data = ces2019_phone_subset)</code></pre>
+<pre><code>## 
+##  Kruskal-Wallis rank sum test
+## 
+## data:  ces2019_phone_subset$weight_CES by q3
+## Kruskal-Wallis chi-squared = 3.809, df = 2, p-value = 0.1489</code></pre>
+<p>#According to result of calculated p-value, the p-value 0.1489 is larger than 0.05 which shows that it is not statistically significant.</p>
+</div>
+<div id="mean_weight_ces" class="section level1">
+<h1>mean_weight_CES</h1>
+<pre class="r"><code>ces2019_phone_subset %&gt;% group_by(q3)%&gt;% summarise(mean_weight_CES = mean(weight_CES))</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre><code>## # A tibble: 3 x 2
+##   q3         mean_weight_CES
+##   &lt;fct&gt;                &lt;dbl&gt;
+## 1 (1) Male             0.567
+## 2 (2) Female           0.551
+## 3 Other                0.694</code></pre>
+<p>#summary data of the q3</p>
+<pre class="r"><code>summ &lt;- ces2019_phone_subset %&gt;% group_by(q3) %&gt;%
+  summarise(
+    count = n(),
+    mean = mean(weight_CES, na.rm = TRUE),
+    sd = sd(weight_CES, na.rm = TRUE),
+    median = median(weight_CES, na.rm = TRUE),
+    IQR = IQR(weight_CES, na.rm = TRUE)
+  )</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>kable(summ, digits=0, caption=&quot;Summary statistics of weight by gender&quot;)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-12">Table 2: </span>Summary statistics of weight by gender</caption>
+<thead>
+<tr class="header">
+<th align="left">q3</th>
+<th align="right">count</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">median</th>
+<th align="right">IQR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(1) Male</td>
+<td align="right">1424</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">(2) Female</td>
+<td align="right">1032</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">Other</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">NA</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>res.aov &lt;- aov(weight_CES ~ q3, data = ces2019_phone_subset)
+summary(res.aov)</code></pre>
+<pre><code>##               Df Sum Sq Mean Sq F value Pr(&gt;F)
+## q3             2   0.17 0.08346   1.684  0.186
+## Residuals   2454 121.59 0.04955</code></pre>
+<p>Discussion:
+In the sample, the column gender, language, phone type, q1,q2,q3,q4,q5,q6 and q7 were selected from the phone survey. From the bar chart of gender, the amount of male was more than female and other gender. The male was 58% while female was 42%. According to the boxplot of weight by gender, male had similar weight with female. In the normal Q-Q plot, the data points of weight did not fall on the line. Thus, it is not normally distributed. The historical diagram of weight and gender was right-skewed. The minimum, maximum, 1st quantile, median and 3rd quantile were 0.0706, 0.90195, 0.41745, 0.6032 and 0.6944 correspondingly. The result of the p-test is 0.1489 which showed that it is not statistically significant. There was no missing data according to the vis_miss graph.</p>
+</div>
+<div id="weaknesses" class="section level1">
+<h1>Weaknesses</h1>
+<p>The survey can still be improved. While the survey was conducted by telephone, people without telephone or mobile phone were not included in the survey. Because of this, some of the data was missing and the result may be inaccurate. Moreover, the other variables may also associate with the weight. For example, languages, phone type, province and etc can also be considered for the reason to affect weight. The CES data is a large dataset so that we can easily get two variables which is statistically significant. Thus, more variables should be used while analyzing the data and plotting graph.</p>
+</div>
+<div id="next-steps" class="section level1">
+<h1>Next steps:</h1>
+<p>To improve the survey, more variables should be used to analysis whether it is associated with weight or not. Furthermore, the loss of information needs to be find in order to make the result more accurate. Finally, a regression model can be built for explaining the relationship between the weight and gender.</p>
+<p>#Reference
+- Brady, Henry E. and Richard Johnston. 1987. “What’s the Primary Message: Horse Race or Issue Journalism?” In Gary R. Orren and Nelson P. Polsby, eds., The New Hampshire Primary and Nomination Politics. Chatham, New Jersey: Chatham House.
+- - Paul A. Hodgetts and Rohan Alexander (2020). cesR: Access the CES Datasets a Little Easier.. R package version 0.1.0.
+- - Hadley Wickham, Jim Hester and Winston Chang (2020). devtools: Tools to Make Developing R Packages Easier. <a href="https://devtools.r-lib.org/,https://github.com/r-lib/devtools" class="uri">https://devtools.r-lib.org/,https://github.com/r-lib/devtools</a>.
+- - R Core Team (2020). R: A language and environment for statistical computing. R, Foundation for
+- Statistical Computing, Vienna, Austria. URL, <a href="https://www.R-project.org/" class="uri">https://www.R-project.org/</a>.
+- JJ Allaire and Yihui Xie and Jonathan McPherson and Javier Luraschi and Kevin Ushey and Aron Atkins and Hadley Wickham and Joe Cheng and Winston Chang and Richard Iannone (2020). rmarkdown: Dynamic Documents for R. R package version 2.3. URL <a href="https://rmarkdown.rstudio.com" class="uri">https://rmarkdown.rstudio.com</a>.
+-Resident population in Canada 2019 Published by Erin Duffin, Jan 24, 2020
+<a href="https://www.statista.com/statistics/444858/canada-resident-population-by-gender-and-age-group/#" class="uri">https://www.statista.com/statistics/444858/canada-resident-population-by-gender-and-age-group/#</a>:~:text=In%202019%2C%20there%20were%20about,males%20and%205.12%20million%20females.</p>
+<div id="refs" class="references">
+<div id="ref-citeR">
+<p>R Core Team. 2020. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a>.</p>
+</div>
+<div id="ref-citetidyverse">
+<p>Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D’Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019. “Welcome to the tidyverse.” <em>Journal of Open Source Software</em> 4 (43): 1686. <a href="https://doi.org/10.21105/joss.01686">https://doi.org/10.21105/joss.01686</a>.</p>
+</div>
+</div>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="../../../../index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="../../../../images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+<script src="../../../../js/math-code.js"></script>
+<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+

@@ -1,0 +1,189 @@
+---
+title: "Survey data CES"
+author: "Feixue Han"
+date: 2015-07-23T21:13:14-05:00
+categories: ["R"]
+bibliography: "references.bib"
+tags: ["R Markdown", "plot", "regression"]
+---
+
+We use @citeR and 'R' package @citetidyverse to do the analysis
+
+https://github.com/hanfeixue212/sta304.git
+
+#abstract
+Canada 2020 population is estimated at 37,742,154 people at mid year according to UN data. Canada population is equivalent to 0.48% of the total world population. Canada ranks number 39 in the list of countries (and dependencies) by population.
+In 2019, there were about 5.16 million males and 5.07 million females between the ages of 25 and 44 living in Canada, which was the most out of any age group. The next largest age group was between the ages of 45 and 64, with 5.04 million males and 5.12 million females
+
+Base on that, the relationship of weight of the population in each province and gender can be found through the study. 
+In the study, the subset of the 2019 CES dataset which is part of 2019 Canadian Elections Survey was selected while analyzing data. According to the weight and gender (male, female and other), we can know that gender and weight are not associated in Canada. 
+
+The weight and gender were selected, and they are not associated. However, other variables may affect weight such as languages, phone type, province and etc. Also, missing information need to be found which could potentially affect the results. In the future, a regression model can be built for better explaining the relationship between the weight and gender.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+install.packages("tidyverse")
+install.packages("devtools")
+devtools::install_github("hodgettsp/cesR")
+options(scipen=999)
+devtools::install_github("hodgettsp/cesR")
+install.packages("png")
+library(png)
+library(labelled)
+library(tidyverse)
+library(visdat)
+library(cesR)
+library(skimr)
+library(knitr)
+```
+
+introduction
+In the 2019 Canadian Election Study, the population of adult in 
+Canada was defined through telephone survey. The sample component 
+for the 2019 Canadian Election Study was designed to represent the adult 
+population of Canada defined as: Canadian citizens 18 years of age or older 
+who reside in one of the ten Canadian provinces (thus excluding the territories). Because the initial survey (the CPS) was conducted by telephone, the small proportion of households in Canada without landline or wireless telephones were excluded from the sample population.
+The ‘ces’ data set is a subset of the 2019 CES phone survey.
+
+#Variables in the ces2019_phone_subset have been selected below:
+
+#The ‘ces’ data set is a subset of the 2019 CES phone survey. 
+```{r}
+cesR::get_ces("ces2019_phone")
+ces2019_phone <- to_factor(ces2019_phone)
+head(ces2019_phone)
+```
+
+#The required variables columns in the ces2019_phone_subset have been selected below:
+```{r}
+ces2019_phone_subset <- ces2019_phone %>%
+  select(7, 8, 9, 20,25:30)
+head(ces2019_phone_subset)
+```
+
+#The name of the columns have been renamed below:
+```{r}
+get_question("ces2019_phone_subset", "q1")
+get_question("ces2019_phone_subset", "q2")
+get_question("ces2019_phone_subset", "q3")
+get_question("ces2019_phone_subset", "q4")
+get_question("ces2019_phone_subset", "q6")
+get_question("ces2019_phone_subset", "q7")
+```
+
+#Here is the gragh to show the miss of data in the selected column.
+#The details of the column and row are displayed below.The max, min, standard deviation and quantile value are also included in the result of skim. 
+```{r}
+vis_dat(ces2019_phone_subset)
+vis_miss(ces2019_phone_subset)
+skimr::skim(ces2019_phone_subset)
+summary(ces2019_phone_subset$weight_CES)
+sum_data <- data.frame(Min = 0.0706,
+                       first = 0.518,
+                       median = 0.694)
+colnames(sum_data) <- c("Minimum", "1st Quartile", "Median")
+kable(sum_data, caption="summary statistics of weight")
+max(ces2019_phone_subset$weight_CES,na.rm = T)
+```
+# The maximum value of the weight is 2.320407 which is over 1. The resonable value should be less than 1.
+
+# The value of weight which is over 1 is filtered below.
+```{r}
+ces2019_phone_subset <- 
+  ces2019_phone_subset %>% 
+  filter( weight_CES< 1)
+
+summary(ces2019_phone_subset$weight_CES)
+```
+
+#histdigram for weight
+```{r}
+library(png)
+par(pin = c(5,3))
+ces2019_phone_subset %>% 
+  ggplot(aes(x = weight_CES)) +
+  geom_histogram(col="black", fill="grey", alpha=0.5) + theme_classic() + 
+  labs(title="Histogram of weight", 
+       subtitle = "of Canadians in ...", 
+       caption = "Data source: ces dataset that is part of 2019 CES dataset")
+```
+
+
+#Normal Q-Q plot of weight
+```{r}
+qqnorm(ces2019_phone_subset$weight_CES, main="Normal Q-Q plot of weight")
+qqline(ces2019_phone_subset$weight_CES)
+```
+#According to the Normal Q-Q plot, it does not follow the normal distribution.
+
+```{r}
+ces2019_phone_subset$q3 <- as.character(ces2019_phone_subset$q3)
+ces2019_phone_subset$q3[ces2019_phone_subset$q3 == unique(ces2019_phone_subset$q3)[3]] <- "Other"
+ces2019_phone_subset$q3 <- as.factor(ces2019_phone_subset$q3)
+levels(ces2019_phone_subset$q3)
+table(ces2019_phone_subset$q3)
+round(prop.table(table(ces2019_phone_subset$q3)), 3)
+```
+# 58% of the sample is male while 42% is female. The other is 1. 
+
+# Bar chart for gender
+```{r}
+ces2019_phone_subset%>% 
+  ggplot(aes(x = q3)) +
+  geom_bar(col="blue", fill="orange") + theme_bw() + 
+  labs(title="Bar chart of q3", 
+       caption = "Data source: ces2019_phone_subset that is part of 2019 CES dataset")
+```
+
+```{r}
+#boxplot of weight and gender
+ggplot(ces2019_phone_subset, aes(x=weight_CES, y=q3)) + 
+  geom_boxplot(outlier.colour="blue",
+               outlier.size=1) + theme_bw() + 
+  labs(title="Box plot of weight by gender", 
+       caption = "ces2019_phone_subset that is part of 2019 CES dataset")
+
+kruskal.test(ces2019_phone_subset$weight_CES ~ q3, data = ces2019_phone_subset)
+```
+
+#According to result of calculated p-value, the p-value 0.1489 is larger than 0.05 which shows that it is not statistically significant. 
+
+# mean_weight_CES
+```{r}
+ces2019_phone_subset %>% group_by(q3)%>% summarise(mean_weight_CES = mean(weight_CES))
+```
+
+#summary data of the q3
+```{r}
+summ <- ces2019_phone_subset %>% group_by(q3) %>%
+  summarise(
+    count = n(),
+    mean = mean(weight_CES, na.rm = TRUE),
+    sd = sd(weight_CES, na.rm = TRUE),
+    median = median(weight_CES, na.rm = TRUE),
+    IQR = IQR(weight_CES, na.rm = TRUE)
+  )
+kable(summ, digits=0, caption="Summary statistics of weight by gender")
+res.aov <- aov(weight_CES ~ q3, data = ces2019_phone_subset)
+summary(res.aov)
+
+```
+
+Discussion:
+In the sample, the column gender, language, phone type, q1,q2,q3,q4,q5,q6 and q7 were selected from the phone survey. From the bar chart of gender, the amount of male was more than female and other gender. The male was 58% while female was 42%. According to the boxplot of weight by gender, male had similar weight with female. In the normal Q-Q plot, the data points of weight did not fall on the line. Thus, it is not normally distributed. The historical diagram of weight and gender was right-skewed. The minimum, maximum, 1st quantile, median and 3rd quantile were 0.0706, 0.90195, 0.41745, 0.6032 and 0.6944 correspondingly. The result of the p-test is 0.1489 which showed that it is not statistically significant. There was no missing data according to the vis_miss graph.
+
+# Weaknesses
+The survey can still be improved. While the survey was conducted by telephone, people without telephone or mobile phone were not included in the survey. Because of this, some of the data was missing and the result may be inaccurate. Moreover, the other variables may also associate with the weight. For example, languages, phone type, province and etc can also be considered for the reason to affect weight. The CES data is a large dataset so that we can easily get two variables which is statistically significant. Thus, more variables should be used while analyzing the data and plotting graph.
+
+# Next steps:
+To improve the survey, more variables should be used to analysis whether it is associated with weight or not. Furthermore, the loss of information needs to be find in order to make the result more accurate. Finally, a regression model can be built for explaining the relationship between the weight and gender.
+
+#Reference
+-	Brady, Henry E. and Richard Johnston. 1987. “What’s the Primary Message: Horse Race or Issue Journalism?” In Gary R. Orren and Nelson P. Polsby, eds., The New Hampshire Primary and Nomination Politics. Chatham, New Jersey: Chatham House.
+-	- Paul A. Hodgetts and Rohan Alexander (2020). cesR: Access the CES Datasets a Little Easier.. R package version 0.1.0.
+-	-  Hadley Wickham, Jim Hester and Winston Chang (2020). devtools: Tools to Make Developing R Packages Easier. https://devtools.r-lib.org/,https://github.com/r-lib/devtools.
+-	- R Core Team (2020). R: A language and environment for statistical computing. R, Foundation for 
+-	Statistical Computing, Vienna, Austria. URL, https://www.R-project.org/.
+- JJ Allaire and Yihui Xie and Jonathan McPherson and Javier Luraschi and Kevin Ushey and Aron Atkins and Hadley Wickham and Joe Cheng and Winston Chang and Richard Iannone (2020). rmarkdown: Dynamic Documents for R. R package version 2.3. URL https://rmarkdown.rstudio.com.
+-Resident population in Canada 2019 Published by Erin Duffin, Jan 24, 2020
+https://www.statista.com/statistics/444858/canada-resident-population-by-gender-and-age-group/#:~:text=In%202019%2C%20there%20were%20about,males%20and%205.12%20million%20females.

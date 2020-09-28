@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>regression on Sta 304 A1</title>
+    <link>/tags/regression/</link>
+    <description>Recent content in regression on Sta 304 A1</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 23 Jul 2015 21:13:14 -0500</lastBuildDate><atom:link href="/tags/regression/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Survey data CES</title>
+      <link>/2015/07/23/survey-data-ces/</link>
+      <pubDate>Thu, 23 Jul 2015 21:13:14 -0500</pubDate>
+      
+      <guid>/2015/07/23/survey-data-ces/</guid>
+      <description>We use R Core Team (2020) and ‘R’ package Wickham et al. (2019) to do the analysis
+https://github.com/hanfeixue212/sta304.git
+#abstract Canada 2020 population is estimated at 37,742,154 people at mid year according to UN data. Canada population is equivalent to 0.48% of the total world population. Canada ranks number 39 in the list of countries (and dependencies) by population. In 2019, there were about 5.16 million males and 5.07 million females between the ages of 25 and 44 living in Canada, which was the most out of any age group.</description>
+    </item>
+    
+  </channel>
+</rss>
